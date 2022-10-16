@@ -21,7 +21,7 @@ abstract contract ProposalStore {
         _;
     }
 
-    Proposal[] public proposals;
+    Proposal[] internal proposals;
 
     // Returns zero (0) if proposal desc does not exists
     function getProposalIdFromDesc(string calldata _proposalDescription) internal view returns(uint) {
@@ -35,6 +35,9 @@ abstract contract ProposalStore {
         return 0;
     }
 
+    /**
+     * Add a new proposal in the store
+     */ 
     function addNewProposal(string calldata _proposalDescription) internal onlyNotExistingProposal(_proposalDescription) {
         proposals.push(Proposal(_proposalDescription, 0));
         emit ProposalRegistered(proposals.length);
