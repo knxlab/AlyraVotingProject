@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.17;
 
 abstract contract VotingWorkflow {
 
@@ -18,6 +18,19 @@ abstract contract VotingWorkflow {
     uint internal votingSessionStartedAt;
     uint internal votingSessionEndedAt;
 
+    modifier onlyWhenWorkflowStateIs(WorkflowStatus _workflowStatus, string memory _erroMsg) {
+        require(currentWorkflowStatus == _workflowStatus, _erroMsg);
+        _;
+    }
+    modifier onlyWhenWorkflowStateIsAfter(WorkflowStatus _workflowStatus, string memory _erroMsg) {
+        require(currentWorkflowStatus > _workflowStatus, _erroMsg);
+        _;
+    }
+    modifier onlyWhenWorkflowStateIsBefore(WorkflowStatus _workflowStatus, string memory _erroMsg) {
+        require(currentWorkflowStatus < _workflowStatus, _erroMsg);
+        _;
+    }
+
     modifier votingOnGoing {
         require(currentWorkflowStatus == WorkflowStatus.VotingSessionStarted, "Voting session not started or has ended");
         _;
@@ -28,17 +41,17 @@ abstract contract VotingWorkflow {
         _;
     }
 
-    modifier proposalRegistrationStarted {
+    modifier onlyWhenProposalRegistrationStarted {
         require(currentWorkflowStatus == WorkflowStatus.ProposalsRegistrationStarted, "Proposal registration not started or has ended");
         _;
     }
 
-    modifier proposalRegistrationEnded {
+    modifier onlyWhenProposalRegistrationEnded {
         require(currentWorkflowStatus == WorkflowStatus.ProposalsRegistrationEnded, "Proposal registration not started or not ended");
         _;
     }
 
-    modifier registeringVoters {
+    modifier onlyWhenRegisteringVoters {
         require(currentWorkflowStatus == WorkflowStatus.RegisteringVoters, "Voter registration already ended");
         _;
     }

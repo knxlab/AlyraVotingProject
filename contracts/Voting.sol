@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.17;
 
 import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol';
 import './VotingWorkflow.sol';
@@ -17,7 +17,6 @@ Voters :
 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2
 0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db
 0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB
-0x617F2E2fD72FD9D5503197092aC168c91465E7f2
 */
 
 contract Voting is Ownable, VotersStore, ProposalStore, VotingWorkflow {
@@ -50,19 +49,21 @@ contract Voting is Ownable, VotersStore, ProposalStore, VotingWorkflow {
     // VOTE ADMINISTRATION
     ////////
 
-    function registerNewVoter(address _voterAdress) public onlyOwner onlyAddressIsNotVoter(_voterAdress) {
+    function registerNewVoter(address _voterAdress) public onlyOwner onlyAddressIsNotVoter(_voterAdress) onlyWhenRegisteringVoters {
         addVoter(_voterAdress);
     }
 
-    function openProposalRegistrationProcess() public onlyOwner registeringVoters {
+    function openProposalRegistrationProcess() public onlyOwner onlyWhenRegisteringVoters {
         require(votersCount > 0, "You need to add at least 1 voters");
         setNewWorkflowStatus(WorkflowStatus.ProposalsRegistrationStarted);
     }
-    function closeProposalRegistrationProcess() public onlyOwner proposalRegistrationStarted {
+    function closeProposalRegistrationProcess() public 
+             onlyOwner onlyWhenProposalRegistrationStarted 
+             onWhenProposalNotEmpty {
         setNewWorkflowStatus(WorkflowStatus.ProposalsRegistrationEnded);
     }
 
-    function openVotingSession() public onlyOwner proposalRegistrationEnded {
+    function openVotingSession() public onlyOwner onlyWhenProposalRegistrationEnded {
         setNewWorkflowStatus(WorkflowStatus.VotingSessionStarted);
     }
     function closeVotingSession() public onlyOwner votingOnGoing {
@@ -94,11 +95,17 @@ contract Voting is Ownable, VotersStore, ProposalStore, VotingWorkflow {
     function getProposalDescById(uint _proposalId) public view onlyVoterOrOwner onlyWhenRegisteringVotersHasEnded onlyValidProposalId(_proposalId) returns(string memory) {
         return proposals[_proposalId - 1].description;
     }
+    /**
+     * Return the proposal description
+     */ 
+    function getProposalVoteCountById(uint _proposalId) public view onlyVoterOrOwner onlyWhenRegisteringVotersHasEnded onlyValidProposalId(_proposalId) returns(uint) {
+        return proposals[_proposalId - 1].voteCount;
+    }
 
     /**
      * Make a new proposal - only for voters
      */ 
-    function makeProposal(string calldata _proposalDescription) public proposalRegistrationStarted onlyVoter {
+    function makeProposal(string calldata _proposalDescription) public onlyWhenProposalRegistrationStarted onlyVoter {
         addNewProposal(_proposalDescription);
     }
 
@@ -115,8 +122,15 @@ contract Voting is Ownable, VotersStore, ProposalStore, VotingWorkflow {
     /**
      * Get the winner proposal
      */
-    function getWinner() public view onlyWhenVotesTallied returns(Proposal memory) {
-        return proposals[winningProposalId];
+    function getWinnerProposal() public view onlyWhenVotesTallied returns(Proposal memory) {
+        return proposals[winningProposalId - 1];
+    }
+
+    /**
+     * Get the winner proposal id
+     */
+    function getWinner() public view onlyWhenVotesTallied returns(uint) {
+        return winningProposalId;
     }
     
 }

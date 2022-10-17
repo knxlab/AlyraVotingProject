@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.17;
 
 
 abstract contract VotersStore {
@@ -23,9 +23,8 @@ abstract contract VotersStore {
         _;
     }
 
-    // No need to check if is a voter (implicit)
     modifier onlyVoterWhoHasntVoted {
-        require(voterHasVoted(msg.sender), "Not allowed to vote");
+        require(isVoter(msg.sender) && voterHasVoted(msg.sender) == false, "Not allowed to vote");
         _;
     }
 

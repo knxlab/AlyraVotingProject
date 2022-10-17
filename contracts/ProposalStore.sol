@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.17;
 
 abstract contract ProposalStore {
 
@@ -18,6 +18,11 @@ abstract contract ProposalStore {
     
     modifier onlyNotExistingProposal(string calldata _proposalDescription) {
         require(getProposalIdFromDesc(_proposalDescription) == 0, "This proposal already exists !");
+        _;
+    }
+
+    modifier onWhenProposalNotEmpty {
+        require(proposals.length > 0, "List of proposal is empty");
         _;
     }
 
