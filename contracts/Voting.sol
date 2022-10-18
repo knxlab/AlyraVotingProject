@@ -6,20 +6,10 @@ import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contr
 import './VotingWorkflow.sol';
 import './VotersStore.sol';
 import './ProposalStore.sol';
+import './DonateToChildrenCancerAssoc.sol';
 
-/*
-Remix VM (London) Tests :
 
-Owner:
-0x5B38Da6a701c568545dCfcB03FcB875f56beddC4
-
-Voters :
-0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2
-0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db
-0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB
-*/
-
-contract Voting is Ownable, VotersStore, ProposalStore, VotingWorkflow {
+contract Voting is Ownable, VotersStore, ProposalStore, VotingWorkflow, DonateToChildrenCancerAssoc {
 
     struct Statistics {
         uint voteSessionStartedAt;
@@ -49,7 +39,7 @@ contract Voting is Ownable, VotersStore, ProposalStore, VotingWorkflow {
     // VOTE ADMINISTRATION
     ////////
 
-    function registerNewVoter(address _voterAdress) public onlyOwner onlyAddressIsNotVoter(_voterAdress) onlyWhenRegisteringVoters {
+    function registerNewVoter(address _voterAdress) public onlyOwner onlyIfAddressIsNotVoter(_voterAdress) onlyWhenRegisteringVoters {
         addVoter(_voterAdress);
     }
 
@@ -104,6 +94,8 @@ contract Voting is Ownable, VotersStore, ProposalStore, VotingWorkflow {
 
     /**
      * Make a new proposal - only for voters
+     * A voter can make multiple proposal
+     * "Les électeurs inscrits sont autorisés à enregistrer leurs propositions" => "propositions" au pluriel :)
      */ 
     function makeProposal(string calldata _proposalDescription) public onlyWhenProposalRegistrationStarted onlyVoter {
         addNewProposal(_proposalDescription);
@@ -118,6 +110,29 @@ contract Voting is Ownable, VotersStore, ProposalStore, VotingWorkflow {
         proposals[_proposalId - 1].voteCount += 1;
         emit Voted(msg.sender, _proposalId);
     }
+
+    /**
+     * Get vote for voter
+     */
+    function getVoteBy(address _voter) public view onlyAfterVotingStarted onlyIfAddressIsVoter(_voter) onlyVoterOrOwner returns(uint) {
+        return winningProposalId;
+    }
+
+
+    ////////
+    // PUBLIC ACTIONS
+    ////////
+
+    /**
+     * L'enoncé étant ambigue, ces functions sont publiques
+     * "Tout le monde peut vérifier les derniers détails de la proposition gagnante."
+     * "Tout le monde" peut vouloir dire "publiquement accessible" ou 
+     * "Accessible aux voter + administrateur"
+     * 
+     * S'il fallait le rendre accesible qu'aux voter + admin 
+     * Il faudrait ajouter le modifier "onlyVoterOrOwner" défini plus haut
+     * 
+     */
 
     /**
      * Get the winner proposal

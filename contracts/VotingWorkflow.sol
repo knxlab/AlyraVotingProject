@@ -36,6 +36,11 @@ abstract contract VotingWorkflow {
         _;
     }
 
+    modifier onlyAfterVotingStarted {
+        require(currentWorkflowStatus > WorkflowStatus.VotingSessionStarted, "Voting session not started yet");
+        _;
+    }
+
     modifier votingEnded {
         require(currentWorkflowStatus == WorkflowStatus.VotingSessionEnded, "Voting session not started or has not ended");
         _;

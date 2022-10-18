@@ -13,8 +13,13 @@ abstract contract VotersStore {
         uint votedProposalId;
     }
 
-    modifier onlyAddressIsNotVoter(address _address) {
+    modifier onlyIfAddressIsNotVoter(address _address) {
         require(isVoter(_address) == false, "Already a voter");
+        _;
+    }
+
+    modifier onlyIfAddressIsVoter(address _address) {
+        require(isVoter(_address) == true, "Not a voter");
         _;
     }
 
