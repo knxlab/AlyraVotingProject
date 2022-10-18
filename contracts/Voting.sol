@@ -75,6 +75,10 @@ contract Voting is Ownable, VotersStore, ProposalStore, VotingWorkflow, DonateTo
         setNewWorkflowStatus(WorkflowStatus.VotesTallied);
     }
 
+    function getStatistics() external view onlyOwner onlyWhenVotesTallied returns(Statistics memory) {
+        return statistics;
+    }
+
     ////////
     // VOTERS ACTIONS
     ////////
